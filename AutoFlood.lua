@@ -3,7 +3,7 @@
 
 	Version : @project-version@
 	Date    : @project-date-iso@
-	Author  : project-author@
+	Author  : @project-author@
 ]]
 
 -- ===========================================
