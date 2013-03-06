@@ -1,0 +1,7 @@
+## Interface: 50200
+## Title: AutoFlood
+## Author: @project-author@
+## Version: @project-version@
+## Notes: Sends a periodical message in a channel
+## SavedVariables: AF_config
+AutoFlood.xml
