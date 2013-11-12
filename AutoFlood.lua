@@ -14,7 +14,7 @@
 function AutoFlood_InitVars()
     AF_maxRate 		= 10
     AF_version 		= "1.2"
-    AF_myID = GetCVar("realmName")..'-'..UnitName("player")
+    AF_myID = GetRealmName()..'-'..UnitName("player")
 end
 
 
