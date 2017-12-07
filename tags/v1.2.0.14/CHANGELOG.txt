@@ -1,0 +1,11 @@
+==v1.2==
+
+* Fixed initialization issue (at last!)
+
+==v1.1==
+
+* Fixed minor onEvent function bug
+
+== v1.0==
+
+* Initial release
