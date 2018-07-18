@@ -1,4 +1,4 @@
-## Interface: 70300
+## Interface: 80000
 ## Title: AutoFlood
 ## Author: @project-author@
 ## Version: @project-version@
