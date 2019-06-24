@@ -8,4 +8,5 @@ AutoFlood periodically sends a single-line message in a chat channel. It's desig
 * `/floodrate <duration>` : Sets the period (in seconds), minimum 10
 * `/floodinfo` : Displays the message and the parameters.
 * `/floodhelp` : Displays this help message.
+
 The settings are saved per character/realm.
