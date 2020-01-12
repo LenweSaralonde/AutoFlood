@@ -1,7 +1,8 @@
-## Interface: 80200
+## Interface: 80205
 ## Title: AutoFlood
 ## Author: @project-author@
 ## Version: @project-version@
 ## Notes: Sends a periodical message in a channel
+## RequiredDeps: MessageQueue
 ## SavedVariables: AF_config
 AutoFlood.xml

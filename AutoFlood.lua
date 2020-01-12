@@ -89,7 +89,7 @@ function AutoFlood_OnUpdate(this, arg1)
 	if(not AF_active) then return end
 	AutoFlood_Frame.TimeSinceLastUpdate = AutoFlood_Frame.TimeSinceLastUpdate + arg1
 	if( AutoFlood_Frame.TimeSinceLastUpdate > AF_config[AF_myID]['rate'] ) then
-     	SendChatMessage(AF_config[AF_myID]['message'], AF_config[AF_myID]['system'], AutoFlood_Frame.language, GetChannelName(AF_config[AF_myID]['idChannel']))
+		MessageQueue.SendChatMessage(AF_config[AF_myID]['message'], AF_config[AF_myID]['system'], AutoFlood_Frame.language, (select(1, GetChannelName(AF_config[AF_myID]['idChannel']))))
 		AutoFlood_Frame.TimeSinceLastUpdate = 0
 	end
 end
