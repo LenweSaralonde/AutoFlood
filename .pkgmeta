@@ -1,8 +1,5 @@
 package-as: AutoFlood
 
 manual-changelog:
-    filename: CHANGELOG.txt
-    markup-type: creole
-	
-ignore:
-    - CHANGELOG.txt
+    filename: CHANGELOG.md
+    markup-type: markdown

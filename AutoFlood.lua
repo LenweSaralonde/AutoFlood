@@ -1,9 +1,6 @@
 --[[
 	AutoFlood
-
-	Version : @project-version@
-	Date    : @project-date-iso@
-	Author  : @project-author@
+	Author  : LenweSaralonde
 ]]
 
 -- ===========================================
@@ -13,7 +10,7 @@
 -- Init configuration variables
 function AutoFlood_InitVars()
     AF_maxRate 		= 10
-    AF_version 		= "1.2"
+    AF_version 		= GetAddOnMetadata("AutoFlood", "Version")
     AF_myID = GetRealmName()..'-'..UnitName("player")
 end
 
