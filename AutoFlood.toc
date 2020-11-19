@@ -1,7 +1,7 @@
-## Interface: 80300
+## Interface: 90002
 ## Title: AutoFlood (MessageQueue demo)
 ## Author: LenweSaralonde
-## Version: 1.2.2
+## Version: 1.2.3
 ## Notes: Sends a periodical message in a channel using MessageQueue
 ## RequiredDeps: MessageQueue
 ## SavedVariables: AF_config
