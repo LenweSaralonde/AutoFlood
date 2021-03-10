@@ -1,6 +1,14 @@
 Changelog
 =========
 
+v1.2.4
+-------
+* Updated TOC for WoW patch 9.0.5
+
+v1.2.3
+-------
+* Updated TOC for WoW patch 9.0.2
+
 v1.2.2
 -------
 * Updated for WoW Shadowlands 9.0.1 prepatch
