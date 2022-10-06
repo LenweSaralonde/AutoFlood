@@ -46,13 +46,13 @@ function AutoFlood_OnEvent(self, event)
 		-- Init configuration
 		AF_characterConfig = Mixin({
 			message = "AutoFlood " .. version,
-			system = "CHANNEL",
-			channel = "1",
+			channel = "say",
 			rate = 60,
-			idChannel = "1",
 		}, oldConfig, AF_characterConfig or {})
 
 		-- Erase old configuration
+		AF_characterConfig.system = nil
+		AF_characterConfig.idChannel = nil
 		cleanOldConfig(characterId)
 
 		-- Display welcome message
@@ -82,12 +82,13 @@ function AutoFlood_OnUpdate(self, elapsed)
 	if not isFloodActive or MessageQueue.GetNumPendingMessages() > 0 then return end
 	AutoFlood_Frame.timeSinceLastUpdate = AutoFlood_Frame.timeSinceLastUpdate + elapsed
 	if AutoFlood_Frame.timeSinceLastUpdate > AF_characterConfig.rate then
-		MessageQueue.SendChatMessage(
-			AF_characterConfig.message,
-			AF_characterConfig.system,
-			AutoFlood_Frame.language,
-			(select(1, GetChannelName(AF_characterConfig.idChannel)))
-		)
+		local system, channelNumber = AutoFlood_GetChannel(AF_characterConfig.channel)
+		if system == nil then
+			local s = string.gsub("[AutoFlood] " .. AUTOFLOOD_ERR_CHAN, "CHANNEL", AF_characterConfig.channel)
+			DEFAULT_CHAT_FRAME:AddMessage(s, 1, 0, 0)
+		else
+			MessageQueue.SendChatMessage(AF_characterConfig.message, system, nil, channelNumber)
+		end
 		AutoFlood_Frame.timeSinceLastUpdate = 0
 	end
 end
@@ -111,8 +112,9 @@ end
 --- Set the message to send.
 -- @param msg (string)
 function AutoFlood_SetMessage(msg)
-	if msg ~= "" then AF_characterConfig.message = msg end
-
+	if msg ~= "" then
+		AF_characterConfig.message = msg
+	end
 	local s = string.gsub(AUTOFLOOD_MESSAGE, "MESSAGE", AF_characterConfig.message)
 	DEFAULT_CHAT_FRAME:AddMessage(s, 1, 1, 1)
 end
@@ -120,61 +122,56 @@ end
 --- Set the amount of seconds between each message sending.
 -- @param rate (number)
 function AutoFlood_SetRate(rate)
-	local s
-
 	if rate ~= nil and tonumber(rate) > 0 and rate ~= "" then rate = tonumber(rate) end
 	if rate >= MAX_RATE then
 		AF_characterConfig.rate = rate
-		s = string.gsub(AUTOFLOOD_RATE, "RATE", AF_characterConfig.rate)
+		local s = string.gsub(AUTOFLOOD_RATE, "RATE", AF_characterConfig.rate)
+		DEFAULT_CHAT_FRAME:AddMessage(s, 1, 1, 1)
 	else
-		s = string.gsub(AUTOFLOOD_ERR_RATE, "RATE", MAX_RATE)
+		local s = string.gsub(AUTOFLOOD_ERR_RATE, "RATE", MAX_RATE)
+		DEFAULT_CHAT_FRAME:AddMessage(s, 1, 0, 0)
 	end
-	DEFAULT_CHAT_FRAME:AddMessage(s, 1, 1, 1)
 end
 
---- Set the event / system / channel type according fo the game channel /ch. Allowed values : s, say, guild, raid, party and actually joined channel numbers (0-9)
--- @param ch (string)
-function AutoFlood_SetChannel(ch)
-	AF_characterConfig.system = ""
+--- Return channel system and number
+-- @param channel (string) Channel name, as prefixed by the slash.
+-- @return system (string|nil)
+-- @return channelNumber (int|nil)
+-- @return channelName (string|nil)
+function AutoFlood_GetChannel(channel)
+	local ch = strlower(strtrim(channel))
 	if ch == "say" or ch == "s" then
-		AF_characterConfig.system = "SAY"
-		AF_characterConfig.channel = ch
+		return "SAY", nil, ch
+	elseif ch == "guild" or ch == "g" then
+		return "GUILD", nil, ch
+	elseif ch == "raid" or ch == "ra" then
+		return "RAID", nil, ch
+	elseif ch == "party" or ch == "p" or ch == "gr" then
+		return "PARTY", nil, ch
+	elseif ch == "i" then
+		return "INSTANCE_CHAT", nil, ch
+	elseif ch == "bg" then
+		return "BATTLEGROUND", nil, ch
+	elseif GetChannelName(channel) ~= 0 then
+		return "CHANNEL", (GetChannelName(channel)), channel
 	end
-	if ch == "guild" or ch == "g" then
-		AF_characterConfig.system = "GUILD"
-		AF_characterConfig.channel = ch
-	end
-	if ch == "raid" then
-		AF_characterConfig.system = "RAID"
-		AF_characterConfig.channel = ch
-	end
-	if ch == "gr" or ch == "party" then
-		AF_characterConfig.system = "PARTY"
-		AF_characterConfig.channel = ch
-	end
-	if ch == "bg" then
-		AF_characterConfig.system = "BATTLEGROUND"
-		AF_characterConfig.channel = ch
-	end
-	if AF_characterConfig.system == "" then
-		if GetChannelName(ch) ~= 0 then
-			AF_characterConfig.idChannel = ch
-			AF_characterConfig.system = "CHANNEL"
-			AF_characterConfig.channel = ch
-		end
-	end
+	return nil, nil, nil
+end
 
-	-- Bad channel
-	if AF_characterConfig.system == "" then
-		AF_characterConfig.system = "SAY"
-		AF_characterConfig.channel = "s"
-		local s = string.gsub(AUTOFLOOD_ERR_CHAN, "CHANNEL", ch)
+--- Set the event / system / channel type according fo the game channel /channel.
+-- @param channel (string) Channel name, as prefixed by the slash.
+function AutoFlood_SetChannel(channel)
+	local system, _, channelName = AutoFlood_GetChannel(channel)
+	if system == nil then
+		-- Bad channel
+		local s = string.gsub(AUTOFLOOD_ERR_CHAN, "CHANNEL", channel)
+		DEFAULT_CHAT_FRAME:AddMessage(s, 1, 0, 0)
+	else
+		-- Save channel setting
+		AF_characterConfig.channel = channelName
+		local s = string.gsub(AUTOFLOOD_CHANNEL, "CHANNEL", channelName)
 		DEFAULT_CHAT_FRAME:AddMessage(s, 1, 1, 1)
-		return
 	end
-
-	local s = string.gsub(AUTOFLOOD_CHANNEL, "CHANNEL", AF_characterConfig.channel)
-	DEFAULT_CHAT_FRAME:AddMessage(s, 1, 1, 1)
 end
 
 -- ===========================================
@@ -197,7 +194,6 @@ SlashCmdList["AUTOFLOOD"] = function(s)
 		end
 	end
 end
-
 
 -- /floodmessage <message>
 -- Set the message to send
@@ -222,7 +218,6 @@ SlashCmdList["AUTOFLOODHELP"] = function()
 		DEFAULT_CHAT_FRAME:AddMessage(l, 1, 1, 1)
 	end
 end
-
 
 -- Command aliases
 SLASH_AUTOFLOOD1 = "/flood"
