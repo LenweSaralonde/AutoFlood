@@ -6,16 +6,17 @@ exclude_files = {
 ignore = {
 	-- Ignore global writes/accesses/mutations on anything prefixed with the add-on name.
 	-- This is the standard prefix for all of our global frame names and mixins.
-	"11./^AutoFlood",
-	"11./^AUTOFLOOD_",
-	"11./^AF_",
+	"11./^AutoFlood", -- Main functions
+	"11./^AUTOFLOOD_", -- Localization strings
 
 	-- Ignore unused self. This would popup for Mixins and Objects
 	"212/self",
 }
 
 globals = {
-	"AF_config",
+	-- Saved variables
+	"AF_config", -- deprecated
+	"AF_characterConfig",
 
 	-- Globals
 	"SLASH_AUTOFLOOD1",
@@ -28,7 +29,6 @@ globals = {
 	"SLASH_AUTOFLOODINFO2",
 	"SLASH_AUTOFLOODHELP1",
 	"SLASH_AUTOFLOODHELP2",
-
 
 	-- AddOn Overrides
 }
@@ -51,7 +51,6 @@ stds.wow = {
 	-- Globals that we access.
 	read_globals = {
 		-- Lua function aliases and extensions
-
 		"date",
 		"floor",
 		"ceil",
@@ -87,6 +86,7 @@ stds.wow = {
 		"GetRealmName",
 		"UnitName",
 		"GetChannelName",
+		"Mixin",
 
 		-- Global Mixins and UI Objects
 		"DEFAULT_CHAT_FRAME",

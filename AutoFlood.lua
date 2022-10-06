@@ -7,26 +7,27 @@
 -- Main code functions
 -- ===========================================
 
---- Init configuration variables
---
-function AutoFlood_InitVars()
-	AF_maxRate = 10
-	AF_version = GetAddOnMetadata("AutoFlood", "Version")
-	AF_myID = GetRealmName() .. '-' .. UnitName("player")
-end
+local MAX_RATE = 10
+local isFloodActive = false
 
 --- Main script initialization
 --
 function AutoFlood_OnLoad()
 	AutoFlood_Frame:RegisterEvent("VARIABLES_LOADED")
-	AutoFlood_Frame.TimeSinceLastUpdate = 0
-
-	AF_active = false
-
-	AutoFlood_InitVars()
-
+	AutoFlood_Frame.timeSinceLastUpdate = 0
 	AutoFlood_Frame:SetScript("OnEvent", AutoFlood_OnEvent)
 	AutoFlood_Frame:SetScript("OnUpdate", AutoFlood_OnUpdate)
+end
+
+--- Clean the old account-wide config table
+-- @param characterId (string)
+local function cleanOldConfig(characterId)
+	if AF_config and AF_config[characterId] then
+		AF_config[characterId] = nil
+		if next(AF_config) == nil then
+			AF_config = nil
+		end
+	end
 end
 
 --- Event handler function
@@ -35,104 +36,98 @@ function AutoFlood_OnEvent(self, event)
 	-- Init saved variables
 	if event == "VARIABLES_LOADED" then
 
+		-- Add-on version
+		local version = GetAddOnMetadata("AutoFlood", "Version")
+
+		-- Config key used for the old account-wide configuration table
+		local characterId = GetRealmName() .. '-' .. UnitName("player")
+		local oldConfig = AF_config and AF_config[characterId] or {}
+
 		-- Init configuration
-		local configInitialisation = {
-			message = "AutoFlood " .. AF_version,
+		AF_characterConfig = Mixin({
+			message = "AutoFlood " .. version,
 			system = "CHANNEL",
 			channel = "1",
 			rate = 60,
 			idChannel = "1",
-		}
+		}, oldConfig, AF_characterConfig or {})
 
-		if AF_config == nil then
-			AF_config = {}
-		end
+		-- Erase old configuration
+		cleanOldConfig(characterId)
 
-		if AF_config[AF_myID] == nil then
-			AF_config[AF_myID] = {}
-		end
-
-		for k, v in pairs(configInitialisation) do
-			if AF_config[AF_myID][k] == nil then
-				AF_config[AF_myID][k] = v
-			end
-		end
-
-		local s = string.gsub(AUTOFLOOD_LOAD, "VERSION", AF_version)
+		-- Display welcome message
+		local s = string.gsub(AUTOFLOOD_LOAD, "VERSION", version)
 		DEFAULT_CHAT_FRAME:AddMessage(s, 1, 1, 1)
-		return
 	end
 end
 
 --- Enable flood!
 --
 function AutoFlood_On()
-	AF_active = true
+	isFloodActive = true
 	AutoFlood_Info()
-	AutoFlood_Frame.TimeSinceLastUpdate = AF_config[AF_myID].rate
+	AutoFlood_Frame.timeSinceLastUpdate = AF_characterConfig.rate
 end
 
 --- Stop flood
 --
 function AutoFlood_Off()
 	DEFAULT_CHAT_FRAME:AddMessage(AUTOFLOOD_INACTIVE, 1, 1, 1)
-	AF_active = false
+	isFloodActive = false
 end
 
 --- Frame update handler
 --
 function AutoFlood_OnUpdate(self, elapsed)
-	if not AF_active then return end
-	AutoFlood_Frame.TimeSinceLastUpdate = AutoFlood_Frame.TimeSinceLastUpdate + elapsed
-	if AutoFlood_Frame.TimeSinceLastUpdate > AF_config[AF_myID].rate then
+	if not isFloodActive then return end
+	AutoFlood_Frame.timeSinceLastUpdate = AutoFlood_Frame.timeSinceLastUpdate + elapsed
+	if AutoFlood_Frame.timeSinceLastUpdate > AF_characterConfig.rate then
 		MessageQueue.SendChatMessage(
-			AF_config[AF_myID].message,
-			AF_config[AF_myID].system,
+			AF_characterConfig.message,
+			AF_characterConfig.system,
 			AutoFlood_Frame.language,
-			(select(1, GetChannelName(AF_config[AF_myID].idChannel)))
+			(select(1, GetChannelName(AF_characterConfig.idChannel)))
 		)
-		AutoFlood_Frame.TimeSinceLastUpdate = 0
+		AutoFlood_Frame.timeSinceLastUpdate = 0
 	end
 end
 
 --- Show parameters
 --
 function AutoFlood_Info()
-	if AF_active then
+	if isFloodActive then
 		DEFAULT_CHAT_FRAME:AddMessage(AUTOFLOOD_ACTIVE, 1, 1, 1)
 	else
 		DEFAULT_CHAT_FRAME:AddMessage(AUTOFLOOD_INACTIVE, 1, 1, 1)
 	end
 
 	local s = AUTOFLOOD_STATS
-	s = string.gsub(s, "MESSAGE", AF_config[AF_myID].message)
-	s = string.gsub(s, "CHANNEL", AF_config[AF_myID].channel)
-	s = string.gsub(s, "RATE", AF_config[AF_myID].rate)
+	s = string.gsub(s, "MESSAGE", AF_characterConfig.message)
+	s = string.gsub(s, "CHANNEL", AF_characterConfig.channel)
+	s = string.gsub(s, "RATE", AF_characterConfig.rate)
 	DEFAULT_CHAT_FRAME:AddMessage(s, 1, 1, 1)
 end
 
 --- Set the message to send.
 -- @param msg (string)
 function AutoFlood_SetMessage(msg)
-	local s
+	if msg ~= "" then AF_characterConfig.message = msg end
 
-	if msg ~= "" then AF_config[AF_myID].message = msg end
-
-	s = string.gsub(AUTOFLOOD_MESSAGE, "MESSAGE", AF_config[AF_myID].message)
+	local s = string.gsub(AUTOFLOOD_MESSAGE, "MESSAGE", AF_characterConfig.message)
 	DEFAULT_CHAT_FRAME:AddMessage(s, 1, 1, 1)
 end
 
 --- Set the amount of seconds between each message sending.
--- @param r (number)
-function AutoFlood_SetRate(r)
+-- @param rate (number)
+function AutoFlood_SetRate(rate)
 	local s
 
-	if r ~= nil and tonumber(r) > 0 and r ~= "" then r = tonumber(r) end
-	if r >= AF_maxRate then
-		AF_config[AF_myID].rate = r
-		s = string.gsub(AUTOFLOOD_RATE, "RATE", AF_config[AF_myID].rate)
+	if rate ~= nil and tonumber(rate) > 0 and rate ~= "" then rate = tonumber(rate) end
+	if rate >= MAX_RATE then
+		AF_characterConfig.rate = rate
+		s = string.gsub(AUTOFLOOD_RATE, "RATE", AF_characterConfig.rate)
 	else
-		s = string.gsub(AUTOFLOOD_ERR_RATE, "RATE", AF_maxRate)
+		s = string.gsub(AUTOFLOOD_ERR_RATE, "RATE", MAX_RATE)
 	end
 	DEFAULT_CHAT_FRAME:AddMessage(s, 1, 1, 1)
 end
@@ -140,48 +135,46 @@ end
 --- Set the event / system / channel type according fo the game channel /ch. Allowed values : s, say, guild, raid, party and actually joined channel numbers (0-9)
 -- @param ch (string)
 function AutoFlood_SetChannel(ch)
-	AF_config[AF_myID].system = ""
+	AF_characterConfig.system = ""
 	if ch == "say" or ch == "s" then
-		AF_config[AF_myID].system = "SAY"
-		AF_config[AF_myID].channel = ch
+		AF_characterConfig.system = "SAY"
+		AF_characterConfig.channel = ch
 	end
 	if ch == "guild" or ch == "g" then
-		AF_config[AF_myID].system = "GUILD"
-		AF_config[AF_myID].channel = ch
+		AF_characterConfig.system = "GUILD"
+		AF_characterConfig.channel = ch
 	end
 	if ch == "raid" then
-		AF_config[AF_myID].system = "RAID"
-		AF_config[AF_myID].channel = ch
+		AF_characterConfig.system = "RAID"
+		AF_characterConfig.channel = ch
 	end
 	if ch == "gr" or ch == "party" then
-		AF_config[AF_myID].system = "PARTY"
-		AF_config[AF_myID].channel = ch
+		AF_characterConfig.system = "PARTY"
+		AF_characterConfig.channel = ch
 	end
 	if ch == "bg" then
-		AF_config[AF_myID].system = "BATTLEGROUND"
-		AF_config[AF_myID].channel = ch
+		AF_characterConfig.system = "BATTLEGROUND"
+		AF_characterConfig.channel = ch
 	end
-	if AF_config[AF_myID].system == "" then
+	if AF_characterConfig.system == "" then
 		if GetChannelName(ch) ~= 0 then
-			AF_config[AF_myID].idChannel = ch
-			AF_config[AF_myID].system = "CHANNEL"
-			AF_config[AF_myID].channel = ch
+			AF_characterConfig.idChannel = ch
+			AF_characterConfig.system = "CHANNEL"
+			AF_characterConfig.channel = ch
 		end
 	end
 
 	-- Bad channel
-	if AF_config[AF_myID].system == "" then
-		AF_config[AF_myID].system = "SAY"
-		AF_config[AF_myID].channel = "s"
+	if AF_characterConfig.system == "" then
+		AF_characterConfig.system = "SAY"
+		AF_characterConfig.channel = "s"
 		local s = string.gsub(AUTOFLOOD_ERR_CHAN, "CHANNEL", ch)
 		DEFAULT_CHAT_FRAME:AddMessage(s, 1, 1, 1)
-		return false
+		return
 	end
 
-	local s = string.gsub(AUTOFLOOD_CHANNEL, "CHANNEL", AF_config[AF_myID].channel)
+	local s = string.gsub(AUTOFLOOD_CHANNEL, "CHANNEL", AF_characterConfig.channel)
 	DEFAULT_CHAT_FRAME:AddMessage(s, 1, 1, 1)
-
-	return true
 end
 
 -- ===========================================
@@ -192,12 +185,16 @@ end
 -- Start / stop flood
 -- @param s (string)
 SlashCmdList["AUTOFLOOD"] = function(s)
-	if (s == "on") then
+	if s == "on" then
 		AutoFlood_On()
-	elseif (s == "off") then
+	elseif s == "off" then
 		AutoFlood_Off()
 	else
-		if (AF_active) then AutoFlood_Off() else AutoFlood_On() end
+		if isFloodActive then
+			AutoFlood_Off()
+		else
+			AutoFlood_On()
+		end
 	end
 end
 
