@@ -1,6 +1,13 @@
 Changelog
 =========
 
+v1.4.0
+------
+* Configuration is now saved character-wide instead of account-wide. #3
+* Wait for the current message to be actually sent before sending the next one. #4
+* Added support for instance chat (/i).
+* Improved channel setting.
+
 v1.3.3
 ------
 * Added support for Wrath of the Lich King Classic.
