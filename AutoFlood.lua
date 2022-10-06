@@ -79,7 +79,7 @@ end
 --- Frame update handler
 --
 function AutoFlood_OnUpdate(self, elapsed)
-	if not isFloodActive then return end
+	if not isFloodActive or MessageQueue.GetNumPendingMessages() > 0 then return end
 	AutoFlood_Frame.timeSinceLastUpdate = AutoFlood_Frame.timeSinceLastUpdate + elapsed
 	if AutoFlood_Frame.timeSinceLastUpdate > AF_characterConfig.rate then
 		MessageQueue.SendChatMessage(
