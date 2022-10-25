@@ -1,6 +1,10 @@
 Changelog
 =========
 
+v1.4.1
+------
+* TOC bump for WoW patch 10.0.0.
+
 v1.4.0
 ------
 * Configuration is now saved character-wide instead of account-wide. #3
