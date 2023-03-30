@@ -81,6 +81,12 @@ stds.wow = {
 		"cos",
 
 		-- Global Functions
+		C_AddOns = {
+			fields = {
+				"GetAddOnMetadata",
+			}
+		},
+
 		"GetLocale",
 		"GetAddOnMetadata",
 		"GetRealmName",

@@ -3,6 +3,8 @@
 	Author : LenweSaralonde
 ]]
 
+local GetAddOnMetadata = C_AddOns and C_AddOns.GetAddOnMetadata or GetAddOnMetadata
+
 -- ===========================================
 -- Main code functions
 -- ===========================================
