@@ -1,7 +1,8 @@
-## Interface: 100007
+## Interface: 100100
 ## Title: AutoFlood (MessageQueue demo)
 ## Author: LenweSaralonde
-## Version: 1.4.4
+## Version: 1.4.5
+## IconTexture: interface/icons/ui_chat.blp
 ## Notes: Sends a periodical message in a channel using MessageQueue
 ## RequiredDeps: MessageQueue
 ## SavedVariables: AF_config
