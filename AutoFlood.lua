@@ -84,12 +84,14 @@ function AutoFlood_OnUpdate(self, elapsed)
 	if not isFloodActive or MessageQueue.GetNumPendingMessages() > 0 then return end
 	AutoFlood_Frame.timeSinceLastUpdate = AutoFlood_Frame.timeSinceLastUpdate + elapsed
 	if AutoFlood_Frame.timeSinceLastUpdate > AF_characterConfig.rate then
-		local system, channelNumber = AutoFlood_GetChannel(AF_characterConfig.channel)
-		if system == nil then
-			local s = string.gsub("[AutoFlood] " .. AUTOFLOOD_ERR_CHAN, "CHANNEL", AF_characterConfig.channel)
-			DEFAULT_CHAT_FRAME:AddMessage(s, 1, 0, 0)
-		else
-			MessageQueue.SendChatMessage(AF_characterConfig.message, system, nil, channelNumber)
+		for i,channel in ipairs(AF_characterConfig.channels) do
+			local system, channelNumber = AutoFlood_GetChannel(channel)
+			if system == nil then
+				local s = string.gsub("[AutoFlood] " .. AUTOFLOOD_ERR_CHAN, "CHANNEL", channel)
+				DEFAULT_CHAT_FRAME:AddMessage(s, 1, 0, 0)
+			else
+				MessageQueue.SendChatMessage(AF_characterConfig.message, system, nil, channelNumber)
+			end
 		end
 		AutoFlood_Frame.timeSinceLastUpdate = 0
 	end
@@ -106,7 +108,7 @@ function AutoFlood_Info()
 
 	local s = AUTOFLOOD_STATS
 	s = string.gsub(s, "MESSAGE", AF_characterConfig.message)
-	s = string.gsub(s, "CHANNEL", AF_characterConfig.channel)
+	s = string.gsub(s, "CHANNEL", AF_characterConfig.channels)
 	s = string.gsub(s, "RATE", AF_characterConfig.rate)
 	DEFAULT_CHAT_FRAME:AddMessage(s, 1, 1, 1)
 end
@@ -162,17 +164,23 @@ end
 
 --- Set the event / system / channel type according fo the game channel /channel.
 -- @param channel (string) Channel name, as prefixed by the slash.
-function AutoFlood_SetChannel(channel)
-	local system, _, channelName = AutoFlood_GetChannel(channel)
-	if system == nil then
-		-- Bad channel
-		local s = string.gsub(AUTOFLOOD_ERR_CHAN, "CHANNEL", channel)
-		DEFAULT_CHAT_FRAME:AddMessage(s, 1, 0, 0)
-	else
-		-- Save channel setting
-		AF_characterConfig.channel = channelName
-		local s = string.gsub(AUTOFLOOD_CHANNEL, "CHANNEL", channelName)
-		DEFAULT_CHAT_FRAME:AddMessage(s, 1, 1, 1)
+function AutoFlood_SetChannels(channels)
+	local chs = strlower(strtrim(channels))
+
+
+	AF_characterConfig.channels = {}
+	for channel in chs:gmatch("%S+") do
+		local system, _, channelName = AutoFlood_GetChannel(channel)
+		if system == nil then
+			-- Bad channel
+			local s = string.gsub(AUTOFLOOD_ERR_CHAN, "CHANNEL", channel)
+			DEFAULT_CHAT_FRAME:AddMessage(s, 1, 0, 0)
+		else
+			-- Save channel setting
+			table.insert(AF_characterConfig.channels, channelName)
+			local s = string.gsub(AUTOFLOOD_CHANNEL, "CHANNEL", channelName)
+			DEFAULT_CHAT_FRAME:AddMessage(s, 1, 1, 1)
+		end
 	end
 end
 
@@ -201,9 +209,9 @@ end
 -- Set the message to send
 SlashCmdList["AUTOFLOODSETMESSAGE"] = AutoFlood_SetMessage
 
--- /floodchan <channel>
--- Set the channel
-SlashCmdList["AUTOFLOODSETCHANNEL"] = AutoFlood_SetChannel
+-- /floodchan <channel_1> <channel_2> (...)
+-- Set the channels
+SlashCmdList["AUTOFLOODSETCHANNELS"] = AutoFlood_SetChannels
 
 -- /floodrate <duration>
 -- Set the period (in seconds)
@@ -227,8 +235,8 @@ SLASH_AUTOFLOOD1 = "/flood"
 SLASH_AUTOFLOODSETMESSAGE1 = "/floodmessage"
 SLASH_AUTOFLOODSETMESSAGE2 = "/floodmsg"
 
-SLASH_AUTOFLOODSETCHANNEL1 = "/floodchannel"
-SLASH_AUTOFLOODSETCHANNEL2 = "/floodchan"
+SLASH_AUTOFLOODSETCHANNELS1 = "/floodchannels"
+SLASH_AUTOFLOODSETCHANNELS2 = "/floodchan"
 
 SLASH_AUTOFLOODSETRATE1 = "/floodrate"
 
