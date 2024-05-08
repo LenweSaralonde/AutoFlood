@@ -1,7 +1,7 @@
 ## Interface: 40400
 ## Title: AutoFlood (MessageQueue demo)
 ## Author: LenweSaralonde
-## Version: 1.4.6
+## Version: 1.5.0
 ## Notes: Sends a periodical message in a channel using MessageQueue
 ## RequiredDeps: MessageQueue
 ## SavedVariables: AF_config
