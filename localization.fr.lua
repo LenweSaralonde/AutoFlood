@@ -20,7 +20,7 @@ if (GetLocale() == "frFR") then
 	AUTOFLOOD_RATE_TITLE = "Répéter toutes les minutes"
 	AUTOFLOOD_INPUT_TITLE = "Entrée"
 	AUTOFLOOD_OUTPUT_TITLE = "Sortie"
-	AUTOFLOOD_SAVE_BUTTON = "Sauvegarder"
+	AUTOFLOOD_SAVE_BUTTON = "Enregistrer"
 	AUTOFLOOD_CANCEL_BUTTON = "Annuler"
 
 	AUTOFLOOD_HELP = {
