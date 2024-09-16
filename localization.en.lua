@@ -1,4 +1,4 @@
--- Version : English (default) ( by @project-author@ )
+-- Version : English (default) ( by LenweSaralonde )
 -- Last Update : 22/05/2006
 
 
@@ -15,6 +15,13 @@ AUTOFLOOD_INACTIVE = "AutoFlood is disabled."
 
 AUTOFLOOD_ERR_CHAN = "The channel /CHANNEL doesn't exist."
 AUTOFLOOD_ERR_RATE = "You can't send messages less than every RATE seconds."
+
+AUTOFLOOD_CHANNEL_TITLE = "Channel"
+AUTOFLOOD_RATE_TITLE = "Repeat every minute"
+AUTOFLOOD_INPUT_TITLE = "Input"
+AUTOFLOOD_OUTPUT_TITLE = "Output"
+AUTOFLOOD_SAVE_BUTTON = "Save"
+AUTOFLOOD_CANCEL_BUTTON = "Cancel"
 
 AUTOFLOOD_HELP = {
 	"===================== Auto Flood =====================",

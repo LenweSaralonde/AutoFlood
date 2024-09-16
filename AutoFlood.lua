@@ -330,7 +330,7 @@ local function AUTOFLOODGUI()
 	local channelTitle = frame:CreateFontString(nil, "OVERLAY")
 	channelTitle:SetFontObject("GameFontHighlight")
 	channelTitle:SetPoint("TOPLEFT", frame, "TOPLEFT", 2 * padding, -20)
-	channelTitle:SetText("Channel")
+	channelTitle:SetText(AUTOFLOOD_CHANNEL_TITLE)
 
 	local channelDropdown = CreateFrame("Frame", nil, frame, "UIDropDownMenuTemplate")
 	channelDropdown:SetPoint("TOPLEFT", channelTitle, "BOTTOMLEFT", -16, -5)
@@ -348,12 +348,13 @@ local function AUTOFLOODGUI()
 	local rateTitle = frame:CreateFontString(nil, "OVERLAY")
 	rateTitle:SetFontObject("GameFontHighlight")
 	rateTitle:SetPoint("BOTTOMLEFT", rateInput, "TOPLEFT", 0, 5)
-	rateTitle:SetText("Repeat every minute")
+	rateTitle:SetText(AUTOFLOOD_RATE_TITLE)
+
 
 	local inputTitle = frame:CreateFontString(nil, "OVERLAY")
 	inputTitle:SetFontObject("GameFontHighlight")
 	inputTitle:SetPoint("TOPLEFT", channelDropdown, "BOTTOMLEFT", 16, -padding)
-	inputTitle:SetText("Input")
+	inputTitle:SetText(AUTOFLOOD_INPUT_TITLE)
 
 	-- Create a background for the input box
 	local inputBoxBg = frame:CreateTexture(nil, "OVERLAY")
@@ -414,7 +415,7 @@ local function AUTOFLOODGUI()
 	local outputTitle = frame:CreateFontString(nil, "OVERLAY")
 	outputTitle:SetFontObject("GameFontHighlight")
 	outputTitle:SetPoint("TOPLEFT", inputBoxBg, "BOTTOMLEFT", 4, -padding)
-	outputTitle:SetText("Output")
+	outputTitle:SetText(AUTOFLOOD_OUTPUT_TITLE)
 
 	-- Create a background for the output box
 	local outputBoxBg = frame:CreateTexture(nil, "OVERLAY")
@@ -476,7 +477,7 @@ local function AUTOFLOODGUI()
 	local saveButton = CreateFrame("Button", nil, frame) -- Removed "UIPanelButtonTemplate"
 	saveButton:SetSize(60, 20)                        -- Adjusted size to match the example
 	saveButton:SetPoint("BOTTOMLEFT", frame, "BOTTOMLEFT", 2 * padding, 2 * padding)
-	saveButton:SetText("Save")
+	saveButton:SetText(AUTOFLOOD_SAVE_BUTTON)
 
 	-- Set custom font
 	local saveButtonText = saveButton:GetFontString()
@@ -503,7 +504,7 @@ local function AUTOFLOODGUI()
 	local cancelButton = CreateFrame("Button", nil, frame) -- Removed "UIPanelButtonTemplate"
 	cancelButton:SetSize(60, 20)
 	cancelButton:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", -2 * padding, 2 * padding)
-	cancelButton:SetText("Cancel")
+	cancelButton:SetText(AUTOFLOOD_CANCEL_BUTTON)
 
 	-- Set custom font
 	local cancelButtonText = cancelButton:GetFontString()

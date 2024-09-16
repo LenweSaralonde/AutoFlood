@@ -1,4 +1,4 @@
-﻿-- Version : French ( by @project-author@ )
+﻿-- Version : French ( by LenweSaralonde )
 -- Last Update : 22/05/2006
 
 if (GetLocale() == "frFR") then
@@ -15,6 +15,13 @@ if (GetLocale() == "frFR") then
 
 	AUTOFLOOD_ERR_CHAN = "Le canal /CHANNEL est invalide."
 	AUTOFLOOD_ERR_RATE = "Vous ne pouvez pas envoyer de messages à moins de RATE secondes d'intervalle."
+
+	AUTOFLOOD_CHANNEL_TITLE = "Canal"
+	AUTOFLOOD_RATE_TITLE = "Répéter toutes les minutes"
+	AUTOFLOOD_INPUT_TITLE = "Entrée"
+	AUTOFLOOD_OUTPUT_TITLE = "Sortie"
+	AUTOFLOOD_SAVE_BUTTON = "Sauvegarder"
+	AUTOFLOOD_CANCEL_BUTTON = "Annuler"
 
 	AUTOFLOOD_HELP = {
 		"===================== Auto Flood =====================",
