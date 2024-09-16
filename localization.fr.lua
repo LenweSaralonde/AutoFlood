@@ -16,6 +16,11 @@ if (GetLocale() == "frFR") then
 	AUTOFLOOD_ERR_CHAN = "Le canal /CHANNEL est invalide."
 	AUTOFLOOD_ERR_RATE = "Vous ne pouvez pas envoyer de messages à moins de RATE secondes d'intervalle."
 
+    AUTOFLOOD_TOGGLE_ON_AFK = "Toggle on AFK is: STATE"
+
+    AUTOFLOOD_STATE_DISABLED = "disabled"
+    AUTOFLOOD_STATE_ENABLED = "enabled"
+
 	AUTOFLOOD_HELP = {
 		"===================== Auto Flood =====================",
 		"/flood [on|off] : Démarre / arrête l'envoi du message.",
