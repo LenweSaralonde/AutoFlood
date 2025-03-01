@@ -1,4 +1,4 @@
-## Interface: 40401
+## Interface: 40402
 ## Title: AutoFlood (MessageQueue demo)
 ## Author: LenweSaralonde
 ## Version: 1.5.0
