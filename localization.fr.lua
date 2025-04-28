@@ -19,7 +19,7 @@ if (GetLocale() == "frFR") then
 	AUTOFLOOD_HELP = {
 		"===================== Auto Flood =====================",
 		"/flood [on|off] : Démarre / arrête l'envoi du message.",
-		"/floodmsg <message> : Définit le message à envoyer.",
+		"/floodmsg <message> : Définit le message à envoyer. Utilisez {size} pour afficher la taille actuelle du groupe/raid.",
 		"/floodchan <canal> : Définit le canal à utiliser pour l'envoi.",
 		"/floodrate <durée> : Définit la période (en secondes) d'envoi du message.",
 		"/floodinfo : Affiche les paramètres.",

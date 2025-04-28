@@ -19,7 +19,7 @@ AUTOFLOOD_ERR_RATE = "You can't send messages less than every RATE seconds."
 AUTOFLOOD_HELP = {
 	"===================== Auto Flood =====================",
 	"/flood [on|off] : Start / stops sending the message.",
-	"/floodmsg <message> : Sets the message.",
+	"/floodmsg <message> : Sets the message. Use {size} to show current group/raid size.",
 	"/floodchan <channel> : Sets the channel.",
 	"/floodrate <duration> : Sets the period (in seconds).",
 	"/floodinfo : Displays parameters.",

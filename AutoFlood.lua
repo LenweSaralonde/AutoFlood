@@ -78,6 +78,17 @@ function AutoFlood_Off()
 	isFloodActive = false
 end
 
+--- Get the current group/raid size
+-- @return number Current group/raid size
+local function GetCurrentGroupSize()
+	local n = GetNumGroupMembers()
+	if n == 0 then
+		return 1 -- Solo
+	else
+		return n
+	end
+end
+
 --- Frame update handler
 --
 function AutoFlood_OnUpdate(self, elapsed)
@@ -89,7 +100,10 @@ function AutoFlood_OnUpdate(self, elapsed)
 			local s = string.gsub("[AutoFlood] " .. AUTOFLOOD_ERR_CHAN, "CHANNEL", AF_characterConfig.channel)
 			DEFAULT_CHAT_FRAME:AddMessage(s, 1, 0, 0)
 		else
-			MessageQueue.SendChatMessage(AF_characterConfig.message, system, nil, channelNumber)
+			-- Replace {size} with current group/raid size
+			local message = AF_characterConfig.message
+			message = string.gsub(message, "{size}", GetCurrentGroupSize())
+			MessageQueue.SendChatMessage(message, system, nil, channelNumber)
 		end
 		AutoFlood_Frame.timeSinceLastUpdate = 0
 	end

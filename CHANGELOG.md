@@ -1,6 +1,10 @@
 Changelog
 =========
 
+v1.5.2
+------
+* Added support for {size} placeholder in flood messages to show the current group/raid size.
+
 v1.5.1
 ------
 * Added add-on category.
