@@ -6,6 +6,13 @@ v1.5.2
 * Added support for {size}, {tanks}, {heals}, and {dps} placeholders in flood messages to show group composition.
 * Added support for math operations in placeholders (e.g., {5-heals} will show 1 if you have 4 healers).
 * Added special format {need-2/4/14} that automatically lists needed roles with proper pluralization.
+* Added support for yell channel (/y or /yell).
+* Added multi-channel broadcasting with different intervals (e.g., /floodchan say,yell,guild and /floodrate 60,120,300).
+* Fixed handling of numeric channel numbers.
+* Fixed timer reset issues when enabling flood or changing settings.
+* Restored immediate broadcast when "/flood on" is used.
+* Fixed duplicate status messages when using slash commands.
+* Improved information display format for better readability.
 
 v1.5.1
 ------

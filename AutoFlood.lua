@@ -25,7 +25,10 @@ local GetAddOnMetadata = C_AddOns and C_AddOns.GetAddOnMetadata or GetAddOnMetad
 -- ===========================================
 
 local MAX_RATE = 10
+local DEFAULT_RATE = 60
 local isFloodActive = false
+local channelIndex = 1
+local lastUpdateTime = {}
 
 --- Main script initialization
 --
@@ -60,12 +63,37 @@ function AutoFlood_OnEvent(self, event)
 		local characterId = GetRealmName() .. '-' .. UnitName("player")
 		local oldConfig = AF_config and AF_config[characterId] or {}
 
-		-- Init configuration
-		AF_characterConfig = Mixin({
+		-- Default configuration
+		local defaultConfig = {
 			message = "AutoFlood " .. version,
-			channel = "say",
-			rate = 60,
-		}, oldConfig, AF_characterConfig or {})
+			channels = {"say"},
+			rates = {DEFAULT_RATE},
+		}
+
+		-- Init configuration
+		AF_characterConfig = Mixin(defaultConfig, oldConfig, AF_characterConfig or {})
+
+		-- Convert old single-channel config to multi-channel format
+		if AF_characterConfig.channel then
+			AF_characterConfig.channels = {AF_characterConfig.channel}
+			AF_characterConfig.rates = {AF_characterConfig.rate or DEFAULT_RATE}
+			AF_characterConfig.channel = nil
+			AF_characterConfig.rate = nil
+		end
+
+		-- Ensure each channel has a corresponding rate
+		while #AF_characterConfig.rates < #AF_characterConfig.channels do
+			table.insert(AF_characterConfig.rates, AF_characterConfig.rates[#AF_characterConfig.rates] or DEFAULT_RATE)
+		end
+
+		-- Initialize lastUpdateTime for each channel
+		lastUpdateTime = {}
+		for i=1, #AF_characterConfig.channels do
+			lastUpdateTime[i] = 0
+		end
+
+		-- Ensure we start in disabled state
+		isFloodActive = false
 
 		-- Erase old configuration
 		AF_characterConfig.system = nil
@@ -82,8 +110,15 @@ end
 --
 function AutoFlood_On()
 	isFloodActive = true
+	
+	-- Reset all channel timers to trigger immediate broadcast
+	lastUpdateTime = {}
+	for i=1, #AF_characterConfig.channels do
+		-- Set timers to their max values to trigger immediate broadcasting
+		lastUpdateTime[i] = AF_characterConfig.rates[i]
+	end
+	
 	AutoFlood_Info()
-	AutoFlood_Frame.timeSinceLastUpdate = AF_characterConfig.rate
 end
 
 --- Stop flood
@@ -142,7 +177,7 @@ local function ProcessGroupPlaceholders(message)
 	message = string.gsub(message, "{heals}", healers)
 	message = string.gsub(message, "{dps}", dps)
 	
-	-- Math operations - ensure results don't go below 0
+	-- Math operations
 	message = string.gsub(message, "{(%d+)%-tanks}", function(num) return safeSubtract(num, tanks) end)
 	message = string.gsub(message, "{(%d+)%-heals}", function(num) return safeSubtract(num, healers) end)
 	message = string.gsub(message, "{(%d+)%-dps}", function(num) return safeSubtract(num, dps) end)
@@ -180,37 +215,55 @@ end
 --
 function AutoFlood_OnUpdate(self, elapsed)
 	if not isFloodActive or MessageQueue.GetNumPendingMessages() > 0 then return end
-	AutoFlood_Frame.timeSinceLastUpdate = AutoFlood_Frame.timeSinceLastUpdate + elapsed
-	if AutoFlood_Frame.timeSinceLastUpdate > AF_characterConfig.rate then
-		local system, channelNumber = AutoFlood_GetChannel(AF_characterConfig.channel)
-		if system == nil then
-			local s = string.gsub("[AutoFlood] " .. AUTOFLOOD_ERR_CHAN, "CHANNEL", AF_characterConfig.channel)
-			DEFAULT_CHAT_FRAME:AddMessage(s, 1, 0, 0)
-		else
-			-- Process the message to replace all placeholders
-			local message = AF_characterConfig.message
-			message = ProcessGroupPlaceholders(message)
+	
+	-- Update all channel timers
+	for i=1, #AF_characterConfig.channels do
+		lastUpdateTime[i] = lastUpdateTime[i] + elapsed
+		
+		-- Check if it's time to send a message to this channel
+		if lastUpdateTime[i] >= AF_characterConfig.rates[i] then
+			local system, channelNumber = AutoFlood_GetChannel(AF_characterConfig.channels[i])
+			if system == nil then
+				local s = string.gsub("[AutoFlood] " .. AUTOFLOOD_ERR_CHAN, "CHANNEL", AF_characterConfig.channels[i])
+				DEFAULT_CHAT_FRAME:AddMessage(s, 1, 0, 0)
+			else
+				-- Process the message to replace all placeholders
+				local message = AF_characterConfig.message
+				message = ProcessGroupPlaceholders(message)
+				
+				-- Send the message
+				MessageQueue.SendChatMessage(message, system, nil, channelNumber)
+			end
 			
-			MessageQueue.SendChatMessage(message, system, nil, channelNumber)
+			-- Reset this channel's timer
+			lastUpdateTime[i] = 0
 		end
-		AutoFlood_Frame.timeSinceLastUpdate = 0
 	end
 end
 
 --- Show parameters
 --
 function AutoFlood_Info()
+	-- Show flood status
 	if isFloodActive then
 		DEFAULT_CHAT_FRAME:AddMessage(AUTOFLOOD_ACTIVE, 1, 1, 1)
 	else
 		DEFAULT_CHAT_FRAME:AddMessage(AUTOFLOOD_INACTIVE, 1, 1, 1)
 	end
 
-	local s = AUTOFLOOD_STATS
-	s = string.gsub(s, "MESSAGE", AF_characterConfig.message)
-	s = string.gsub(s, "CHANNEL", AF_characterConfig.channel)
-	s = string.gsub(s, "RATE", AF_characterConfig.rate)
-	DEFAULT_CHAT_FRAME:AddMessage(s, 1, 1, 1)
+	-- Show message
+	local messageInfo = string.gsub(AUTOFLOOD_MESSAGE_INFO, "MESSAGE", AF_characterConfig.message)
+	DEFAULT_CHAT_FRAME:AddMessage(messageInfo, 1, 1, 1)
+	
+	-- Show channels header
+	DEFAULT_CHAT_FRAME:AddMessage(AUTOFLOOD_CHANNELS_HEADER, 1, 1, 1)
+	
+	-- Display info for each channel
+	for i=1, #AF_characterConfig.channels do
+		local channelInfo = string.gsub(AUTOFLOOD_CHANNEL_RATE, "CHANNEL", AF_characterConfig.channels[i])
+		channelInfo = string.gsub(channelInfo, "RATE", AF_characterConfig.rates[i])
+		DEFAULT_CHAT_FRAME:AddMessage(channelInfo, 1, 1, 1)
+	end
 end
 
 --- Set the message to send.
@@ -224,17 +277,53 @@ function AutoFlood_SetMessage(msg)
 end
 
 --- Set the amount of seconds between each message sending.
--- @param rate (number)
-function AutoFlood_SetRate(rate)
-	if rate ~= nil and tonumber(rate) > 0 and rate ~= "" then rate = tonumber(rate) end
-	if rate >= MAX_RATE then
-		AF_characterConfig.rate = rate
-		local s = string.gsub(AUTOFLOOD_RATE, "RATE", AF_characterConfig.rate)
-		DEFAULT_CHAT_FRAME:AddMessage(s, 1, 1, 1)
-	else
-		local s = string.gsub(AUTOFLOOD_ERR_RATE, "RATE", MAX_RATE)
-		DEFAULT_CHAT_FRAME:AddMessage(s, 1, 0, 0)
+-- @param rateStr (string) Comma-separated list of rates
+function AutoFlood_SetRate(rateStr)
+	if not rateStr or rateStr == "" then
+		-- Just show current rates
+		for i=1, #AF_characterConfig.rates do
+			local s = string.gsub(AUTOFLOOD_CHANNEL_RATE, "CHANNEL", AF_characterConfig.channels[i])
+			s = string.gsub(s, "RATE", AF_characterConfig.rates[i])
+			DEFAULT_CHAT_FRAME:AddMessage(s, 1, 1, 1)
+		end
+		return
 	end
+	
+	-- Parse comma-separated rates
+	local rates = {}
+	for rate in string.gmatch(rateStr, "([^,]+)") do
+		rate = tonumber(strtrim(rate))
+		if rate and rate >= MAX_RATE then
+			table.insert(rates, rate)
+		else
+			local s = string.gsub(AUTOFLOOD_ERR_RATE, "RATE", MAX_RATE)
+			DEFAULT_CHAT_FRAME:AddMessage(s, 1, 0, 0)
+			return
+		end
+	end
+	
+	if #rates == 0 then return end
+	
+	-- Update rates based on how many were provided
+	if #rates == 1 then
+		-- Single rate for all channels
+		for i=1, #AF_characterConfig.channels do
+			AF_characterConfig.rates[i] = rates[1]
+		end
+	else
+		-- Multiple rates
+		for i=1, math.min(#rates, #AF_characterConfig.channels) do
+			AF_characterConfig.rates[i] = rates[i]
+		end
+	end
+	
+	-- Reset timers to prevent immediate message sending
+	for i=1, #AF_characterConfig.channels do
+		lastUpdateTime[i] = 0
+	end
+	
+	-- Confirm the new rates
+	AutoFlood_Info()
 end
 
 --- Return channel system and number
@@ -243,9 +332,20 @@ end
 -- @return channelNumber (int|nil)
 -- @return channelName (string|nil)
 function AutoFlood_GetChannel(channel)
-	local ch = strlower(strtrim(channel))
+	local ch = strtrim(channel)
+	
+	-- Check if it's a numeric channel
+	local channelNum = tonumber(ch)
+	if channelNum then
+		return "CHANNEL", channelNum, ch
+	end
+	
+	-- Check standard channels
+	ch = strlower(ch)
 	if ch == "say" or ch == "s" then
 		return "SAY", nil, ch
+	elseif ch == "yell" or ch == "y" then
+		return "YELL", nil, ch
 	elseif ch == "guild" or ch == "g" then
 		return "GUILD", nil, ch
 	elseif ch == "raid" or ch == "ra" then
@@ -263,19 +363,48 @@ function AutoFlood_GetChannel(channel)
 end
 
 --- Set the event / system / channel type according fo the game channel /channel.
--- @param channel (string) Channel name, as prefixed by the slash.
-function AutoFlood_SetChannel(channel)
-	local system, _, channelName = AutoFlood_GetChannel(channel)
-	if system == nil then
-		-- Bad channel
-		local s = string.gsub(AUTOFLOOD_ERR_CHAN, "CHANNEL", channel)
-		DEFAULT_CHAT_FRAME:AddMessage(s, 1, 0, 0)
-	else
-		-- Save channel setting
-		AF_characterConfig.channel = channelName
-		local s = string.gsub(AUTOFLOOD_CHANNEL, "CHANNEL", channelName)
-		DEFAULT_CHAT_FRAME:AddMessage(s, 1, 1, 1)
+-- @param channelStr (string) Comma-separated list of channels
+function AutoFlood_SetChannel(channelStr)
+	if not channelStr or channelStr == "" then
+		-- Just show current channels
+		AutoFlood_Info()
+		return
 	end
+	
+	-- Parse comma-separated channels
+	local channels = {}
+	for channel in string.gmatch(channelStr, "([^,]+)") do
+		channel = strtrim(channel)
+		local system, _, channelName = AutoFlood_GetChannel(channel)
+		
+		if system == nil then
+			-- Bad channel
+			local s = string.gsub(AUTOFLOOD_ERR_CHAN, "CHANNEL", channel)
+			DEFAULT_CHAT_FRAME:AddMessage(s, 1, 0, 0)
+			return
+		else
+			table.insert(channels, channelName)
+		end
+	end
+	
+	if #channels == 0 then return end
+	
+	-- Update the channels
+	AF_characterConfig.channels = channels
+	
+	-- Make sure we have enough rates for all channels
+	while #AF_characterConfig.rates < #AF_characterConfig.channels do
+		table.insert(AF_characterConfig.rates, AF_characterConfig.rates[#AF_characterConfig.rates] or DEFAULT_RATE)
+	end
+	
+	-- Reset lastUpdateTime array
+	lastUpdateTime = {}
+	for i=1, #AF_characterConfig.channels do
+		lastUpdateTime[i] = 0
+	end
+	
+	-- Confirm the new channels and rates
+	AutoFlood_Info()
 end
 
 -- ===========================================
@@ -286,15 +415,26 @@ end
 -- Start / stop flood
 -- @param s (string)
 SlashCmdList["AUTOFLOOD"] = function(s)
+	s = strlower(strtrim(s))
 	if s == "on" then
 		AutoFlood_On()
 	elseif s == "off" then
 		AutoFlood_Off()
 	else
-		if isFloodActive then
-			AutoFlood_Off()
+		-- Only toggle if no parameter is provided at all
+		if s == "" then
+			if isFloodActive then
+				AutoFlood_Off()
+			else
+				AutoFlood_On()
+			end
 		else
-			AutoFlood_On()
+			-- Just show status for invalid parameters
+			if isFloodActive then
+				DEFAULT_CHAT_FRAME:AddMessage(AUTOFLOOD_ACTIVE, 1, 1, 1)
+			else
+				DEFAULT_CHAT_FRAME:AddMessage(AUTOFLOOD_INACTIVE, 1, 1, 1)
+			end
 		end
 	end
 end
