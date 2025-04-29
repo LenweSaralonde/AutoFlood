@@ -4,6 +4,8 @@ Changelog
 v1.5.2
 ------
 * Added support for {size}, {tanks}, {heals}, and {dps} placeholders in flood messages to show group composition.
+* Added support for math operations in placeholders (e.g., {5-heals} will show 1 if you have 4 healers).
+* Added special format {need-2/4/14} that automatically lists needed roles with proper pluralization.
 
 v1.5.1
 ------

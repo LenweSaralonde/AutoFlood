@@ -19,7 +19,7 @@ if (GetLocale() == "frFR") then
 	AUTOFLOOD_HELP = {
 		"===================== Auto Flood =====================",
 		"/flood [on|off] : Démarre / arrête l'envoi du message.",
-		"/floodmsg <message> : Définit le message à envoyer. Utilisez {size} pour la taille du groupe, {tanks} pour le nombre de tanks, {heals} pour le nombre de soigneurs, et {dps} pour le nombre de DPS.",
+		"/floodmsg <message> : Définit le message à envoyer. Utilisez {size} pour la taille du groupe, {tanks} pour le nombre de tanks, {heals} pour le nombre de soigneurs, et {dps} pour le nombre de DPS. Les opérations mathématiques comme {5-heals} sont également prises en charge. Format spécial {need-2/4/14} (tanks/soigneurs/dps) indique les rôles dont vous avez encore besoin.",
 		"/floodchan <canal> : Définit le canal à utiliser pour l'envoi.",
 		"/floodrate <durée> : Définit la période (en secondes) d'envoi du message.",
 		"/floodinfo : Affiche les paramètres.",

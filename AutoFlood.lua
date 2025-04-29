@@ -3,10 +3,19 @@
 	Author : LenweSaralonde
 	
 	Variables available in messages:
-	{size} - Current group/raid size
-	{tanks} - Number of tanks in group
-	{heals} - Number of healers in group
-	{dps} - Number of DPS in group
+	{size} - Current group/raid size (e.g., 20)
+	{tanks} - Number of tanks in group (e.g., 2)
+	{heals} - Number of healers in group (e.g., 4)
+	{dps} - Number of DPS in group (e.g., 14)
+	
+	Math operations are supported:
+	{2-tanks} - Subtract tanks from 2 (e.g., 2-1=1, won't go below 0)
+	{4-heals} - Subtract healers from 4 (e.g., 4-3=1, won't go below 0)
+	{14-dps} - Subtract DPS from 14 (e.g., 14-10=4, won't go below 0)
+	
+	Need format:
+	{need-2/4/14} - Shows what roles are still needed based on desired counts
+	                (e.g., with 2/3/10, shows "Need 1 heal, 4 DPS!")
 ]]
 
 local GetAddOnMetadata = C_AddOns and C_AddOns.GetAddOnMetadata or GetAddOnMetadata
@@ -114,6 +123,59 @@ local function GetCurrentGroupInfo()
 	end
 end
 
+--- Process message placeholders related to group composition
+-- @param message (string) Original message with placeholders
+-- @return (string) Message with group-related placeholders substituted
+local function ProcessGroupPlaceholders(message)
+	-- Get current group information
+	local size, tanks, healers, dps = GetCurrentGroupInfo()
+	
+	-- Helper function for math operations to ensure non-negative results
+	local function safeSubtract(desired, current)
+		local result = tonumber(desired) - current
+		return result > 0 and result or 0
+	end
+	
+	-- Basic replacements
+	message = string.gsub(message, "{size}", size)
+	message = string.gsub(message, "{tanks}", tanks)
+	message = string.gsub(message, "{heals}", healers)
+	message = string.gsub(message, "{dps}", dps)
+	
+	-- Math operations - ensure results don't go below 0
+	message = string.gsub(message, "{(%d+)%-tanks}", function(num) return safeSubtract(num, tanks) end)
+	message = string.gsub(message, "{(%d+)%-heals}", function(num) return safeSubtract(num, healers) end)
+	message = string.gsub(message, "{(%d+)%-dps}", function(num) return safeSubtract(num, dps) end)
+	message = string.gsub(message, "{(%d+)%-size}", function(num) return safeSubtract(num, size) end)
+	
+	-- Need format
+	message = string.gsub(message, "{need%-(%d+)/(%d+)/(%d+)}", function(neededTanks, neededHealers, neededDps)
+		local parts = {}
+		local remainingTanks = safeSubtract(neededTanks, tanks)
+		local remainingHealers = safeSubtract(neededHealers, healers)
+		local remainingDps = safeSubtract(neededDps, dps)
+		
+		-- Helper function to add a role to the parts list with proper pluralization
+		local function addRole(count, singular, plural)
+			if count > 0 then
+				table.insert(parts, count .. " " .. (count == 1 and singular or plural))
+			end
+		end
+		
+		addRole(remainingTanks, "tank", "tanks")
+		addRole(remainingHealers, "heal", "heals")
+		addRole(remainingDps, "DPS", "DPS")
+		
+		if #parts == 0 then
+			return ""
+		else
+			return "Need " .. table.concat(parts, ", ") .. "!"
+		end
+	end)
+	
+	return message
+end
+
 --- Frame update handler
 --
 function AutoFlood_OnUpdate(self, elapsed)
@@ -125,18 +187,9 @@ function AutoFlood_OnUpdate(self, elapsed)
 			local s = string.gsub("[AutoFlood] " .. AUTOFLOOD_ERR_CHAN, "CHANNEL", AF_characterConfig.channel)
 			DEFAULT_CHAT_FRAME:AddMessage(s, 1, 0, 0)
 		else
-			-- Replace group info placeholders if they exist in the message
+			-- Process the message to replace all placeholders
 			local message = AF_characterConfig.message
-			local size, tanks, healers, dps
-			
-			if string.find(message, "{size}") or string.find(message, "{tanks}") or 
-			   string.find(message, "{heals}") or string.find(message, "{dps}") then
-				size, tanks, healers, dps = GetCurrentGroupInfo()
-				message = string.gsub(message, "{size}", size)
-				message = string.gsub(message, "{tanks}", tanks)
-				message = string.gsub(message, "{heals}", healers)
-				message = string.gsub(message, "{dps}", dps)
-			end
+			message = ProcessGroupPlaceholders(message)
 			
 			MessageQueue.SendChatMessage(message, system, nil, channelNumber)
 		end
