@@ -3,7 +3,7 @@ Changelog
 
 v1.5.2
 ------
-* Added support for {size} placeholder in flood messages to show the current group/raid size.
+* Added support for {size}, {tanks}, {heals}, and {dps} placeholders in flood messages to show group composition.
 
 v1.5.1
 ------

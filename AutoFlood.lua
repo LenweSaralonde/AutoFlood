@@ -1,6 +1,12 @@
 --[[
 	AutoFlood
 	Author : LenweSaralonde
+	
+	Variables available in messages:
+	{size} - Current group/raid size
+	{tanks} - Number of tanks in group
+	{heals} - Number of healers in group
+	{dps} - Number of DPS in group
 ]]
 
 local GetAddOnMetadata = C_AddOns and C_AddOns.GetAddOnMetadata or GetAddOnMetadata
@@ -78,14 +84,33 @@ function AutoFlood_Off()
 	isFloodActive = false
 end
 
---- Get the current group/raid size
+--- Get the current group/raid size and role counts
 -- @return number Current group/raid size
-local function GetCurrentGroupSize()
+-- @return number Tank count
+-- @return number Healer count
+-- @return number DPS count
+local function GetCurrentGroupInfo()
 	local n = GetNumGroupMembers()
+	local tanks, healers, dps = 0, 0, 0
+	
 	if n == 0 then
-		return 1 -- Solo
+		return 1, 0, 0, 0 -- Solo
 	else
-		return n
+		local isRaid = IsInRaid()
+		local unitPrefix = isRaid and "raid" or "party"
+		
+		for i = 1, n do
+			local unit = unitPrefix .. (isRaid and i or (i == 1 and "" or i))
+			local role = UnitGroupRolesAssigned(unit)
+			if role == "TANK" then
+				tanks = tanks + 1
+			elseif role == "HEALER" then
+				healers = healers + 1
+			elseif role == "DAMAGER" then
+				dps = dps + 1
+			end
+		end
+		return n, tanks, healers, dps
 	end
 end
 
@@ -100,9 +125,19 @@ function AutoFlood_OnUpdate(self, elapsed)
 			local s = string.gsub("[AutoFlood] " .. AUTOFLOOD_ERR_CHAN, "CHANNEL", AF_characterConfig.channel)
 			DEFAULT_CHAT_FRAME:AddMessage(s, 1, 0, 0)
 		else
-			-- Replace {size} with current group/raid size
+			-- Replace group info placeholders if they exist in the message
 			local message = AF_characterConfig.message
-			message = string.gsub(message, "{size}", GetCurrentGroupSize())
+			local size, tanks, healers, dps
+			
+			if string.find(message, "{size}") or string.find(message, "{tanks}") or 
+			   string.find(message, "{heals}") or string.find(message, "{dps}") then
+				size, tanks, healers, dps = GetCurrentGroupInfo()
+				message = string.gsub(message, "{size}", size)
+				message = string.gsub(message, "{tanks}", tanks)
+				message = string.gsub(message, "{heals}", healers)
+				message = string.gsub(message, "{dps}", dps)
+			end
+			
 			MessageQueue.SendChatMessage(message, system, nil, channelNumber)
 		end
 		AutoFlood_Frame.timeSinceLastUpdate = 0
