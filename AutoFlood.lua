@@ -15,7 +15,7 @@
 	
 	Need format:
 	{need-2/4/14} - Shows what roles are still needed based on desired counts
-	                (e.g., with 2/3/10, shows "Need 1 heal, 4 DPS!")
+	                (e.g., with 2/3/10, shows "Need 1 heal, 4 DPS")
 ]]
 
 local GetAddOnMetadata = C_AddOns and C_AddOns.GetAddOnMetadata or GetAddOnMetadata
@@ -185,6 +185,11 @@ local function ProcessGroupPlaceholders(message)
 	
 	-- Need format
 	message = string.gsub(message, "{need%-(%d+)/(%d+)/(%d+)}", function(neededTanks, neededHealers, neededDps)
+		-- Only return content if we're able to get role counts
+		if (tanks == 0 and healers == 0 and dps == 0) then
+			return ""
+		end
+		
 		local parts = {}
 		local remainingTanks = safeSubtract(neededTanks, tanks)
 		local remainingHealers = safeSubtract(neededHealers, healers)
@@ -204,7 +209,7 @@ local function ProcessGroupPlaceholders(message)
 		if #parts == 0 then
 			return ""
 		else
-			return "Need " .. table.concat(parts, ", ") .. "!"
+			return "Need " .. table.concat(parts, ", ")
 		end
 	end)
 	
