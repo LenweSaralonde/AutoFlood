@@ -21,7 +21,10 @@ AUTOFLOOD_ERR_RATE = "You can't send messages less than every RATE seconds."
 AUTOFLOOD_HELP = {
 	"===================== Auto Flood =====================",
 	"/flood [on|off] : Start / stops sending the message.",
-	"/floodmsg <message> : Sets the message. Use {size} for group size, {tanks} for tank count, {heals} for healer count, and {dps} for DPS count. Math operations like {5-heals} are also supported. Special format {need-2/4/14} (tanks/heals/dps) shows what roles you still need based on desired counts.",
+	"/floodmsg <message> : Sets the message. Use {size} for group size, {tanks} for tank count, {heals} for healer count, and {dps} for DPS count. Math operations like {5-heals} are also supported.",
+	"  Special formats:",
+	"  - {need-2/4/14} (tanks/heals/dps) Shows what roles you still need based on desired counts.",
+	"  - {>10need-2/4/14} Only shows needed roles if group size is greater than the specified threshold (10 in this example).",
 	"/floodchan <channels> : Sets the channels (comma-separated). Example: say,yell,guild",
 	"/floodrate <rates> : Sets the periods in seconds (comma-separated). Example: 60,120,300",
 	"/floodinfo : Displays parameters.",

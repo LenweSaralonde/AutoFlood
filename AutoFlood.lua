@@ -16,6 +16,8 @@
 	Need format:
 	{need-2/4/14} - Shows what roles are still needed based on desired counts
 	                (e.g., with 2/3/10, shows "Need 1 heal, 4 DPS")
+	{>10need-2/4/14} - Only shows needed roles if group size is greater than 10
+	                   This allows for different recruiting messages based on group size
 ]]
 
 local GetAddOnMetadata = C_AddOns and C_AddOns.GetAddOnMetadata or GetAddOnMetadata
@@ -183,8 +185,16 @@ local function ProcessGroupPlaceholders(message)
 	message = string.gsub(message, "{(%d+)%-dps}", function(num) return safeSubtract(num, dps) end)
 	message = string.gsub(message, "{(%d+)%-size}", function(num) return safeSubtract(num, size) end)
 	
-	-- Need format
-	message = string.gsub(message, "{need%-(%d+)/(%d+)/(%d+)}", function(neededTanks, neededHealers, neededDps)
+	-- Consolidated need format function with optional size threshold
+	local function processNeedFormat(minSize, neededTanks, neededHealers, neededDps)
+		-- Convert minSize to number, default to 0 if not provided
+		local threshold = tonumber(minSize) or 0
+		
+		-- Only return content if group size is greater than threshold
+		if size <= threshold then
+			return ""
+		end
+		
 		-- Only return content if we're able to get role counts
 		if (tanks == 0 and healers == 0 and dps == 0) then
 			return ""
@@ -211,6 +221,14 @@ local function ProcessGroupPlaceholders(message)
 		else
 			return "Need " .. table.concat(parts, ", ")
 		end
+	end
+	
+	-- Enhanced need format with explicit size threshold
+	message = string.gsub(message, "{>(%d+)need%-(%d+)/(%d+)/(%d+)}", processNeedFormat)
+	
+	-- Standard need format with implicit zero threshold
+	message = string.gsub(message, "{need%-(%d+)/(%d+)/(%d+)}", function(neededTanks, neededHealers, neededDps)
+		return processNeedFormat(0, neededTanks, neededHealers, neededDps)
 	end)
 	
 	return message
@@ -388,7 +406,8 @@ function AutoFlood_SetChannel(channelStr)
 			DEFAULT_CHAT_FRAME:AddMessage(s, 1, 0, 0)
 			return
 		else
-			table.insert(channels, channelName)
+			-- Use the original channel string to preserve exact user input
+			table.insert(channels, channel)
 		end
 	end
 	
