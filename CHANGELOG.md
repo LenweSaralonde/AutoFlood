@@ -1,6 +1,10 @@
 Changelog
 =========
 
+v1.5.2
+------
+* Updated for WoW retail patch 11.2.
+
 v1.5.1
 ------
 * Added add-on category.
