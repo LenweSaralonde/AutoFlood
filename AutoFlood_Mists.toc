@@ -1,4 +1,4 @@
-## Interface: 50500
+## Interface: 50503
 ## Title: AutoFlood (MessageQueue demo)
 ## Author: LenweSaralonde
 ## Version: 1.5.2
