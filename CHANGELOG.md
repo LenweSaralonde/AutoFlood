@@ -1,6 +1,11 @@
 Changelog
 =========
 
+v1.6.0
+------
+* TOC bump for WoW Midnight 12.0.0 prepatch.
+* Added TBC classic support.
+
 v1.5.2
 ------
 * Updated for WoW retail patch 11.2.
