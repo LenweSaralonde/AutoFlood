@@ -1,7 +1,7 @@
 ## Interface: 20505
 ## Title: AutoFlood (MessageQueue demo)
 ## Author: LenweSaralonde
-## Version: 1.6.0
+## Version: 1.6.1
 ## Notes: Sends a periodical message in a channel using MessageQueue
 ## RequiredDeps: MessageQueue
 ## SavedVariables: AF_config
