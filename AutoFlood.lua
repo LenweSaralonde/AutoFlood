@@ -34,7 +34,7 @@ end
 
 --- Event handler function
 --
-function AutoFlood_OnEvent(self, event)
+function AutoFlood_OnEvent(self, event, ...)
 	-- Init saved variables
 	if event == "VARIABLES_LOADED" then
 
@@ -50,6 +50,7 @@ function AutoFlood_OnEvent(self, event)
 			message = "AutoFlood " .. version,
 			channel = "say",
 			rate = 60,
+            toggleOnAFK = false,
 		}, oldConfig, AF_characterConfig or {})
 
 		-- Erase old configuration
@@ -61,6 +62,11 @@ function AutoFlood_OnEvent(self, event)
 		local s = string.gsub(AUTOFLOOD_LOAD, "VERSION", version)
 		DEFAULT_CHAT_FRAME:AddMessage(s, 1, 1, 1)
 	end
+
+    if event == "PLAYER_FLAGS_CHANGED" then
+       local unit = ...
+       AutoFloodOnAFK(event, unit)
+    end
 end
 
 --- Enable flood!
@@ -69,6 +75,7 @@ function AutoFlood_On()
 	isFloodActive = true
 	AutoFlood_Info()
 	AutoFlood_Frame.timeSinceLastUpdate = AF_characterConfig.rate
+    AutoFloodAFKRegisterEvent()
 end
 
 --- Stop flood
@@ -105,10 +112,14 @@ function AutoFlood_Info()
 	end
 
 	local s = AUTOFLOOD_STATS
+    local toggleOnAFKState =  string.gsub(tostring(AF_characterConfig.toggleOnAFK), "true", AUTOFLOOD_STATE_ENABLED)
+    local toggleOnAFKState =  string.gsub(toggleOnAFKState, "false", AUTOFLOOD_STATE_DISABLED)
 	s = string.gsub(s, "MESSAGE", AF_characterConfig.message)
 	s = string.gsub(s, "CHANNEL", AF_characterConfig.channel)
 	s = string.gsub(s, "RATE", AF_characterConfig.rate)
+    a = string.gsub(AUTOFLOOD_TOGGLE_ON_AFK, "STATE", toggleOnAFKState)
 	DEFAULT_CHAT_FRAME:AddMessage(s, 1, 1, 1)
+    DEFAULT_CHAT_FRAME:AddMessage(a, 1, 1, 1)
 end
 
 --- Set the message to send.
@@ -176,6 +187,31 @@ function AutoFlood_SetChannel(channel)
 	end
 end
 
+function AutoFloodAFK_Toggle(disableOnAFK)
+   if disableOnAFK == "on" or disableOnAFK == "true" == disableOnAFK == "t" then
+      AF_characterConfig.toggleOnAFK = true
+   else
+      if AF_characterConfig.toggleOnAFK == false then
+         AF_characterConfig.toggleOnAFK = true
+      end
+   end
+   AutoFloodAFKRegisterEvent()
+end
+
+function AutoFloodAFKRegisterEvent()
+   if AF_characterConfig.toggleOnAFK then
+      AutoFlood_Frame:RegisterEvent("PLAYER_FLAGS_CHANGED")
+   else
+      AutoFlood_Frame:UnregisterEvent("PLAYER_FLAGS_CHANGED")
+   end
+end
+
+function AutoFloodOnAFK(event, unit)
+	if unit ~= "player" then return end
+	if not UnitIsAFK("player") then return end
+    AutoFlood_Off()
+end
+
 -- ===========================================
 -- Slash command aliases
 -- ===========================================
@@ -213,6 +249,10 @@ SlashCmdList["AUTOFLOODSETRATE"] = AutoFlood_SetRate
 -- Display the parameters in chat window
 SlashCmdList["AUTOFLOODINFO"] = AutoFlood_Info
 
+-- /floodafk [on|off]
+-- Toggle flood disable on afk
+SlashCmdList["AUTOFLOODAFK"] = AutoFloodAFK_Toggle
+
 -- /floodhelp
 -- Display help in chat window
 SlashCmdList["AUTOFLOODHELP"] = function()
@@ -237,3 +277,4 @@ SLASH_AUTOFLOODINFO2 = "/floodconfig"
 
 SLASH_AUTOFLOODHELP1 = "/floodhelp"
 SLASH_AUTOFLOODHELP2 = "/floodman"
+SLASH_AUTOFLOODAFK1 = "/floodafk"

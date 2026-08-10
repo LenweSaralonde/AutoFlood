@@ -16,6 +16,11 @@ AUTOFLOOD_INACTIVE = "AutoFlood is disabled."
 AUTOFLOOD_ERR_CHAN = "The channel /CHANNEL doesn't exist."
 AUTOFLOOD_ERR_RATE = "You can't send messages less than every RATE seconds."
 
+AUTOFLOOD_TOGGLE_ON_AFK = "Toggle on AFK is: STATE"
+
+AUTOFLOOD_STATE_DISABLED = "disabled"
+AUTOFLOOD_STATE_ENABLED = "enabled"
+
 AUTOFLOOD_HELP = {
 	"===================== Auto Flood =====================",
 	"/flood [on|off] : Start / stops sending the message.",
@@ -24,4 +29,5 @@ AUTOFLOOD_HELP = {
 	"/floodrate <duration> : Sets the period (in seconds).",
 	"/floodinfo : Displays parameters.",
 	"/floodhelp : Displays this help message.",
+    "/floodafk [on|off] : Start/stop disable sending the message on AFK",
 }
