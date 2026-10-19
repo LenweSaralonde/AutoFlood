@@ -18,5 +18,6 @@
 ## Category-ruRU: Чат
 ## Category-zhCN: 聊天
 ## Category-zhTW: 對話
+## X-Curse-Project-ID: 21367
 
 AutoFlood.xml
